@@ -1,0 +1,131 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Verkehrsteilnehmer entdecken</title>
+<style>
+:root{font-family:"Comic Sans MS","Trebuchet MS",sans-serif;color:#17364d}*{box-sizing:border-box}body{margin:0;background:#dcebf6}button{font:inherit;cursor:pointer}button:focus-visible,[role=button]:focus-visible{outline:4px solid #f5b522;outline-offset:3px}
+[hidden]{display:none!important}#intro{min-height:100dvh;display:grid;place-items:center;padding:20px;background:#d8effc}.panel{background:white;border-radius:22px;padding:25px;text-align:center;max-width:580px;width:100%;box-shadow:0 10px 40px #29445c2a}h1{font-size:clamp(28px,5vw,42px)}p{line-height:1.5}.primary{background:#176fa8;color:white;border:0;border-radius:12px;padding:13px 22px;font-size:20px;font-weight:800}.sub{background:#fff;color:#16364e;border:2px solid #a9c7da;border-radius:11px;padding:8px 11px;font-weight:800}
+#game{position:fixed;inset:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#d4e8f4}.top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;background:white;min-height:52px}.tools{display:flex;gap:5px}.task{background:#eaf7ff;display:flex;align-items:center;justify-content:center;gap:14px;padding:7px;min-height:70px;border-bottom:2px solid #a4c7df}.task strong{font-size:clamp(19px,3vw,29px)}.task .emoji{font-size:35px}.count{font-weight:800;border-radius:100px;background:white;padding:6px 12px}.scene{flex:1;min-height:0;position:relative;overflow:hidden}.scene svg{display:block;width:100%;height:100%}.target{cursor:pointer}.target.found .found-ring{opacity:1}.found-ring{opacity:0;fill:none;stroke:#ffda43;stroke-width:8;stroke-dasharray:12 7;pointer-events:none}.hit{fill:transparent}.bottom{background:white;min-height:43px;display:grid;place-items:center;text-align:center;padding:5px;font-weight:800}.modal{position:fixed;inset:0;z-index:20;background:#0d253bc4;display:grid;place-items:center;padding:15px}.modal img{max-width:100%}#toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#fff5cf;border:2px solid #e7c454;border-radius:12px;padding:9px 15px;font-weight:800;z-index:4;opacity:0;pointer-events:none}#toast.show{opacity:1}
+@media(max-width:650px){.top{min-height:42px;padding:4px}.top strong{font-size:13px}.tools button{font-size:11px;padding:5px}.task{min-height:57px;gap:6px}.task .emoji{font-size:25px}.count{font-size:12px}.bottom{font-size:12px;min-height:32px}}
+</style></head><body>
+<section id="intro"><div class="panel"><div style="font-size:58px">🚗 🚲 🚌</div><h1>Links oder rechts?</h1><p>Suche Fahrzeuge und Menschen im Straßenbild. Fahrzeuge fahren auf der Straße, Menschen sind auf dem Gehweg. Bei jedem Neustart sieht alles anders aus.</p><button class="primary" id="start">Spiel starten</button></div></section>
+<main id="game" hidden><div class="top"><strong>🚦 Links oder rechts?</strong><div class="tools"><button class="sub" id="restart">Neues Bild</button><button class="sub" id="qrBtn">QR-Code</button><button class="sub" id="exit">Beenden</button></div></div><div class="task"><span class="emoji" id="taskIcon">🚗</span><strong id="taskText">Finde die Autos!</strong><span class="count" id="taskCount">0 / 2</span></div><div class="scene"><div id="toast" role="status"></div><svg id="city" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet" aria-label="Verkehrswimmelbild mit wechselnden Fahrzeugen und Menschen" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#80c8ef"/><stop offset="1" stop-color="#e4f5fc"/></linearGradient><linearGradient id="road" x2="0" y2="1"><stop stop-color="#657889"/><stop offset="1" stop-color="#495d70"/></linearGradient><g id="wheel"><circle r="19" fill="#273849" stroke="#d9e2e9" stroke-width="3"/><circle r="9" fill="#b9c8d5"/><circle r="3" fill="#677d90"/></g><g id="tree"><rect x="-9" y="-5" width="18" height="96" rx="5" fill="#8b5a3d"/><circle cy="-12" r="40" fill="#3c9b64"/><circle cx="-26" cy="-28" r="26" fill="#58b878"/><circle cx="27" cy="-20" r="29" fill="#45a66b"/></g><g id="house"><rect x="0" y="0" width="165" height="130" fill="#f5d5a3" stroke="#bd9871" stroke-width="3"/><path d="M-12 0L82 -58L177 0Z" fill="#a84c49"/><rect x="18" y="20" width="37" height="40" rx="2" fill="#9dd7ed" stroke="white" stroke-width="6"/><rect x="108" y="20" width="37" height="40" rx="2" fill="#9dd7ed" stroke="white" stroke-width="6"/><rect x="70" y="67" width="32" height="63" fill="#9c654e"/><circle cx="95" cy="101" r="3" fill="#ffdb7a"/></g></defs>
+<rect width="1200" height="720" fill="url(#sky)"/><circle cx="1040" cy="75" r="48" fill="#ffdc80"/><path d="M0 245Q170 200 350 244T700 233T1200 230V410H0Z" fill="#93c59c"/>
+<g opacity=".94"><use href="#house" x="35" y="185"/><use href="#house" x="285" y="195"/><rect x="620" y="160" width="210" height="165" rx="4" fill="#f0bd92"/><path d="M605 162L725 100L845 162Z" fill="#9e6664"/><text x="725" y="195" font-size="28" text-anchor="middle" fill="#724c42" font-weight="bold">SCHULE</text><rect x="650" y="215" width="45" height="55" fill="#b2e4ef" stroke="white" stroke-width="6"/><rect x="757" y="215" width="45" height="55" fill="#b2e4ef" stroke="white" stroke-width="6"/><rect x="710" y="247" width="38" height="78" fill="#88624d"/><use href="#tree" x="900" y="248"/><use href="#tree" x="1120" y="255"/></g>
+<rect y="326" width="1200" height="96" fill="#d4d5cf"/><path d="M0 330H1200M0 417H1200" stroke="#faf9f0" stroke-width="5"/>
+<rect y="422" width="1200" height="298" fill="url(#road)"/><path d="M0 559H1200" stroke="#f6e8b5" stroke-width="6" stroke-dasharray="85 45"/><path d="M0 687H1200" stroke="#fff" stroke-width="5"/>
+<g transform="translate(545 425)"><path d="M0 0H150L215 280H-65Z" fill="#e9e9e6" opacity=".9"/><g fill="#fff"><path d="M5 15H40L31 50H-5Z"/><path d="M51 15H86L92 50H43Z"/><path d="M97 15H132L147 50H104Z"/><path d="M-13 74H24L15 112H-24Z"/><path d="M42 74H99L105 112H32Z"/><path d="M115 74H157L169 112H122Z"/><path d="M-30 145H3L-6 190H-43Z"/><path d="M29 145H115L124 190H20Z"/><path d="M137 145H180L196 190H149Z"/></g></g>
+<g transform="translate(1110 325)"><rect x="-5" y="0" width="10" height="120" fill="#65717d"/><rect x="-25" y="-40" width="50" height="100" rx="12" fill="#26323d"/><circle cy="-17" r="13" fill="#d92e31"/><circle cy="13" r="13" fill="#edb82c"/><circle cy="43" r="13" fill="#39b46c"/></g>
+
+<g id="objects"></g></svg></div><div class="bottom" id="hint">Tippe auf alle, die in die gesuchte Richtung unterwegs sind.</div></main>
+<div id="win" class="modal" hidden><div class="panel"><div style="font-size:60px">⭐</div><h2>Super, geschafft!</h2><p>Du hast alle Richtungen richtig erkannt.</p><button class="primary" id="again">Noch einmal spielen</button> <button class="sub" id="winExit">Beenden</button></div></div>
+<div id="qr" class="modal" hidden><div class="panel"><h2>QR-Code</h2><img id="qrImg" width="220" height="220" alt="QR-Code zum Spiel"><p>Der QR-Code funktioniert nach der Veröffentlichung auf Annas Lernwerkstatt.</p><button class="sub" id="closeQR">Schließen</button></div></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+const stages=[
+{kind:'rechts',label:'Finde alle, die nach rechts fahren oder gehen!',icon:'➡️'},
+{kind:'links',label:'Finde alle, die nach links fahren oder gehen!',icon:'⬅️'}
+];
+const drawings={
+auto:`<ellipse cx="100" cy="34" rx="108" ry="12" fill="#27384944"/><path d="M0 0L25 -22L58 -44H140L175 -10L200 0Q212 4 212 18V34H0Z" fill="COLOR" stroke="#324b5c" stroke-width="3"/><path d="M65 -37H137L162 -10H40Z" fill="#aee1ee" stroke="#527b8e" stroke-width="3"/><path d="M105 -37V-10" stroke="#527b8e" stroke-width="3"/><rect x="3" y="9" width="14" height="11" rx="3" fill="#fff2b6"/><circle cx="47" cy="34" r="20" fill="#263746"/><circle cx="166" cy="34" r="20" fill="#263746"/><circle cx="47" cy="34" r="9" fill="#b5c5d1"/><circle cx="166" cy="34" r="9" fill="#b5c5d1"/><rect x="203" y="7" width="9" height="11" rx="3" fill="#fff4b0"/><rect x="0" y="8" width="7" height="12" fill="#d74b48"/>`,
+bus:`<rect x="0" y="-78" width="260" height="112" rx="15" fill="COLOR" stroke="#8b672b" stroke-width="3"/><rect x="12" y="-65" width="237" height="54" rx="5" fill="#9ad5eb" stroke="#527f91" stroke-width="3"/><path d="M63 -65V-11M123 -65V-11M184 -65V-11" stroke="#b58a32" stroke-width="5"/><rect x="18" y="4" width="226" height="8" rx="3" fill="#fff4c0"/><circle cx="53" cy="34" r="20" fill="#293a48"/><circle cx="205" cy="34" r="20" fill="#293a48"/><circle cx="53" cy="34" r="9" fill="#b5c7d2"/><circle cx="205" cy="34" r="9" fill="#b5c7d2"/><path d="M230 -66V-10" stroke="#6b8391" stroke-width="5"/><circle cx="223" cy="-46" r="9" fill="#e0ae85"/><path d="M211 -30Q222 -42 234 -30V-13H211Z" fill="#345d84"/><path d="M254 -39V-5" stroke="#edf7fb" stroke-width="6"/><rect x="251" y="5" width="11" height="12" rx="3" fill="#fff5b8"/><rect x="0" y="6" width="8" height="13" rx="2" fill="#d83b37"/>`,
+fahrrad:`<circle cx="24" cy="0" r="27" fill="none" stroke="#263745" stroke-width="6"/><circle cx="133" cy="0" r="27" fill="none" stroke="#263745" stroke-width="6"/><path d="M24 0L59 -40L85 0L24 0M85 0L108 -40L133 0" fill="none" stroke="COLOR" stroke-width="7" stroke-linejoin="round"/><path d="M59 -40L54 -55M108 -40L105 -57H122M43 -56H65" stroke="#253745" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+lkw:`<rect x="0" y="-75" width="178" height="108" rx="6" fill="COLOR" stroke="#657c8e" stroke-width="4"/><rect x="182" y="-48" width="105" height="81" rx="10" fill="#efb13b" stroke="#997226" stroke-width="4"/><path d="M196 -36H254L271 -8H196Z" fill="#b1e0f0" stroke="#5e8799" stroke-width="3"/><circle cx="50" cy="34" r="20" fill="#293948"/><circle cx="151" cy="34" r="20" fill="#293948"/><circle cx="246" cy="34" r="20" fill="#293948"/><circle cx="50" cy="34" r="8" fill="#c3cdd5"/><circle cx="151" cy="34" r="8" fill="#c3cdd5"/><circle cx="246" cy="34" r="8" fill="#c3cdd5"/><rect x="278" y="4" width="9" height="13" rx="3" fill="#fff4b0"/><rect x="0" y="4" width="7" height="12" fill="#d84e48"/>`,
+motorrad:`<ellipse cx="111" cy="25" rx="113" ry="10" fill="#253746" opacity=".2"/>
+<circle cx="30" cy="12" r="30" fill="#202d39" stroke="#aebbc5" stroke-width="4"/><circle cx="30" cy="12" r="18" fill="#c5d0d9"/><circle cx="30" cy="12" r="6" fill="#52697b"/>
+<circle cx="195" cy="12" r="30" fill="#202d39" stroke="#aebbc5" stroke-width="4"/><circle cx="195" cy="12" r="18" fill="#c5d0d9"/><circle cx="195" cy="12" r="6" fill="#52697b"/>
+<path d="M30 12L68 -28L124 -20L161 12H195" stroke="#536674" stroke-width="9" fill="none" stroke-linecap="round"/>
+<path d="M58 -12L84 -43L137 -43L169 -16L151 7L105 7L91 -9Z" fill="COLOR" stroke="#263f53" stroke-width="4"/>
+<path d="M91 -8H139L129 16H101Z" fill="#303e49"/><circle cx="114" cy="-2" r="12" fill="#718592" stroke="#344859" stroke-width="4"/>
+<path d="M138 -41L163 -61L188 -61L198 -33L179 -18L153 -22Z" fill="COLOR" stroke="#344b5b" stroke-width="4"/>
+<path d="M166 -57L181 -87L190 -87" stroke="#33485b" stroke-width="6" fill="none"/><path d="M177 -86H207" stroke="#253746" stroke-width="7" stroke-linecap="round"/>
+<path d="M185 -57L205 -42L212 -20L192 -19" fill="#cbdce7" stroke="#617b8c" stroke-width="3"/>
+<path d="M65 -45L113 -45" stroke="#283c4d" stroke-width="12" stroke-linecap="round"/>
+<path d="M91 -48L110 -87L139 -90L157 -60L143 -36L112 -35Z" fill="#2b6d9a" stroke="#233d55" stroke-width="3"/>
+<path d="M110 -87L101 -107L115 -126L141 -122L152 -103L141 -89Z" fill="#26394b" stroke="#243b50" stroke-width="4"/>
+<path d="M117 -115H146L142 -102H120Z" fill="#a9d8e7" stroke="#718c9d" stroke-width="2"/>
+<path d="M140 -81L173 -73L182 -85" stroke="#2b4053" stroke-width="12" fill="none" stroke-linecap="round"/>
+<path d="M118 -42L90 -12L69 9M145 -40L159 -2L178 12" stroke="#2a4055" stroke-width="12" fill="none" stroke-linecap="round"/>
+<path d="M53 12H77M171 12H192" stroke="#222d37" stroke-width="10" stroke-linecap="round"/>
+<path d="M84 16H157" stroke="#8b9ba6" stroke-width="6" stroke-linecap="round"/>`,
+roller:`<circle cx="30" cy="15" r="12" fill="#293c4b"/><circle cx="135" cy="15" r="12" fill="#293c4b"/><path d="M30 8H125L136 -48H151" stroke="#4b85c4" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M122 -48H155" stroke="#243e50" stroke-width="6" stroke-linecap="round"/><circle cx="80" cy="-105" r="18" fill="#dbad86"/><path d="M63 -107Q65 -132 88 -126Q104 -121 97 -104Z" fill="#e5a82c"/><path d="M75 -87L70 -46L101 -43L96 -85Z" fill="COLOR"/><path d="M71 -75L49 -51M97 -75L124 -53M79 -44L54 -3M94 -43L106 -5" stroke="#31475b" stroke-width="10" stroke-linecap="round"/><path d="M50 -3H72M103 -5H125" stroke="#f2f3f4" stroke-width="9" stroke-linecap="round"/>`,
+fuss:`<ellipse cx="53" cy="18" rx="36" ry="6" fill="#293b4b22"/><circle cx="55" cy="-103" r="18" fill="#d9a581"/><path d="M42 -111Q40 -132 59 -133Q77 -130 73 -109L64 -118L44 -114Z" fill="#5b4339"/><path d="M70 -106L81 -100L70 -96Z" fill="#d9a581"/><circle cx="67" cy="-108" r="2.5" fill="#293746"/><path d="M43 -83Q55 -91 70 -82L77 -37L36 -37Z" fill="COLOR" stroke="#536275" stroke-width="2"/><path d="M48 -37L27 9M65 -37L85 9" stroke="#365575" stroke-width="12" stroke-linecap="round"/><path d="M27 9L14 12M85 9L101 12" stroke="#263b4a" stroke-width="9" stroke-linecap="round"/><path d="M42 -72L25 -47M72 -70L91 -46" stroke="#d9a581" stroke-width="9" stroke-linecap="round"/>`,
+rollstuhl:`<circle cx="60" cy="-112" r="17" fill="#bd8c6b"/><path d="M44 -121Q48 -143 68 -129L76 -113Z" fill="#513d35"/><path d="M44 -90L77 -90L90 -46L52 -45Z" fill="COLOR"/><path d="M60 -51L96 -36L115 -22" stroke="#3d5368" stroke-width="13" fill="none" stroke-linecap="round"/><path d="M46 -74L28 -48L46 -38" stroke="#bd8c6b" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M78 -70L97 -51" stroke="#bd8c6b" stroke-width="9" stroke-linecap="round"/><path d="M38 -45L48 -8H110" stroke="#506c87" stroke-width="8" fill="none"/><path d="M43 -12L107 -12L122 9" stroke="#3d5367" stroke-width="6" fill="none"/><circle cx="60" cy="0" r="36" fill="none" stroke="#2b4b68" stroke-width="9"/><circle cx="60" cy="0" r="26" fill="none" stroke="#a2b5c3" stroke-width="3"/><circle cx="128" cy="10" r="10" fill="#2b4b68"/><path d="M44 -48L28 -68" stroke="#506c87" stroke-width="7"/>`
+};
+const colors={auto:['#d94343','#2d82c2','#48a86b','#e7a638'],bus:['#f0bd32','#e9a33b','#d6bd6b'],fahrrad:['#d34b4f','#327bb7','#53a56d'],lkw:['#9c78bc','#d66c65','#5c9aaf','#78a56c'],motorrad:['#d9483e','#2879bc','#efad32'],roller:['#ee7b9c','#46a9b5','#f1b64e'],fuss:['#ec8eaa','#65a7c8','#d6a65c'],rollstuhl:['#69a2d4','#ed9a64','#a58bd0']};
+// Separate placement zones: engines on the road, pedestrians and scooters on the sidewalk.
+const roadSlots=[
+{x:25,y:495,s:.57},{x:290,y:495,s:.57},{x:585,y:495,s:.57},{x:885,y:495,s:.57},
+{x:25,y:658,s:.57},{x:290,y:658,s:.57},{x:585,y:658,s:.57},{x:885,y:658,s:.57}
+];
+const walkSlots=[
+{x:95,y:409,s:.57},{x:310,y:409,s:.57},{x:525,y:409,s:.57},{x:750,y:409,s:.57},{x:975,y:409,s:.57}
+];
+let stage=0,found=new Set(),instances=[],toastTimer=0,round=0;
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function isOnSidewalk(kind){return ['roller','fuss','rollstuhl'].includes(kind)}
+function matches(kind,search){return search==='fuss'?['fuss','rollstuhl'].includes(kind):kind===search}
+function newRound(){
+ round++;stage=0;found.clear();instances=[];$('win').hidden=true;
+ const motor=['auto','bus','fahrrad','lkw','motorrad'];
+ const walking=['roller','fuss','rollstuhl'];
+ // Always at least one of each. Extra appearances vary in number and type.
+ const roadKinds=[...motor];
+ const walkKinds=[...walking];
+ const extraRoad=Math.floor(Math.random()*4);
+ const extraWalk=Math.floor(Math.random()*3);
+ for(let i=0;i<extraRoad;i++)roadKinds.push(motor[Math.floor(Math.random()*motor.length)]);
+ for(let i=0;i<extraWalk;i++)walkKinds.push(walking[Math.floor(Math.random()*walking.length)]);
+ const positions=[...shuffle([...roadSlots]).slice(0,roadKinds.length).map((loc,i)=>({kind:roadKinds[i],loc})),
+ ...shuffle([...walkSlots]).slice(0,walkKinds.length).map((loc,i)=>({kind:walkKinds[i],loc}))];
+ // Each round contains clearly visible movement in BOTH directions.
+ const directions=shuffle(positions.map((_,i)=>i%2===0?'rechts':'links'));
+ const holder=$('objects');holder.replaceChildren();
+ positions.sort((a,b)=>a.loc.y-b.loc.y).forEach(({kind,loc},positionIndex)=>{
+  const group=document.createElementNS(NS,'g');
+  const colorSet=colors[kind],color=colorSet[Math.floor(Math.random()*colorSet.length)];
+  const human=isOnSidewalk(kind);
+  const scale=human?loc.s*.87:loc.s;
+  group.setAttribute('transform',`translate(${loc.x} ${loc.y}) scale(${scale})`);
+  const direction=directions[positionIndex];group.dataset.direction=direction;
+  group.classList.add('target');group.dataset.kind=kind;group.setAttribute('tabindex','0');group.setAttribute('role','button');
+  group.setAttribute('aria-label',(kind==='rollstuhl'?'Kind im Rollstuhl':kind==='roller'?'Kind auf dem Tretroller':kind==='fuss'?'Fußgänger':kind)+' nach '+direction);
+  const dimensions={auto:[-10,-65,235,125],bus:[-10,-92,285,155],fahrrad:[-10,-70,165,110],lkw:[-10,-93,315,148],motorrad:[-10,-140,245,185],roller:[-10,-140,180,180],fuss:[-5,-145,120,180],rollstuhl:[-5,-155,155,205]};
+  const [rx,ry,rw,rh]=dimensions[kind];
+  // Mirror the entire vehicle/person within its own bounding box, not the street.
+  // For leftward travel the SVG drawing is flipped horizontally, including the hit area.
+  const content=`<rect class="hit" x="${rx}" y="${ry}" width="${rw}" height="${rh}"/>`+drawings[kind].replaceAll('COLOR',color)+`<ellipse class="found-ring" cx="${rx+rw/2}" cy="${ry+rh/2}" rx="${rw/2+6}" ry="${rh/2+6}"/>`;
+  group.innerHTML=direction==='links'?`<g transform="translate(${2*rx+rw} 0) scale(-1 1)">${content}</g>`:content;
+  group.addEventListener('click',()=>select(group));
+  group.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(group)}});
+  holder.append(group);instances.push(group);
+ });
+ showStage();
+}
+function showStage(){
+ found.clear();instances.forEach(el=>el.classList.remove('found'));
+ const current=stages[stage];$('taskIcon').textContent=current.icon;
+ $('taskText').textContent=current.label;
+ $('taskCount').textContent=`0 / ${instances.filter(x=>x.dataset.direction===current.kind).length}`;
+ $('hint').textContent='Tippe auf alle, die in die gesuchte Richtung unterwegs sind.';
+}
+function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),1000)}
+function select(el){
+ const kind=stages[stage].kind;
+ if(el.dataset.direction!==kind){toast('Schau auf die Richtung '+stages[stage].icon);return}
+ if(found.has(el))return;
+ found.add(el);el.classList.add('found');
+ const count=instances.filter(x=>x.dataset.direction===kind).length;
+ $('taskCount').textContent=`${found.size} / ${count}`;
+ toast('Richtig!');
+ if(found.size===count){
+  $('hint').textContent='Alle gefunden!';
+  const thisRound=round;const thisStage=stage;setTimeout(()=>{if(thisRound!==round||thisStage!==stage)return;if(stage<stages.length-1){stage++;showStage()}else $('win').hidden=false},850);
+ }
+}
+function start(){ $('intro').hidden=true;$('game').hidden=false;newRound();try{document.documentElement.requestFullscreen?.()?.catch(()=>{})}catch(e){} }
+function exit(){ $('intro').hidden=false;$('game').hidden=true;$('win').hidden=true;$('qr').hidden=true;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}
+$('start').onclick=start;$('restart').onclick=newRound;$('again').onclick=newRound;$('exit').onclick=exit;$('winExit').onclick=exit;
+$('qrBtn').onclick=()=>{const url='https://annaslernwerkstatt.github.io/sachunterricht/verkehrserziehung/links-oder-rechts.html';$('qrImg').src='https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=12&data='+encodeURIComponent(url);$('qr').hidden=false};
+$('closeQR').onclick=()=>$('qr').hidden=true;
+if(new URLSearchParams(location.search).get('start')==='1')start();
+</script></body></html>
