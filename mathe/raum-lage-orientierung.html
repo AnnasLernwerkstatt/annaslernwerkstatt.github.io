@@ -1,0 +1,971 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Raum & Lage – Orientierung</title>
+<style>
+@font-face{
+  font-family:"AndikaLocal";
+  src:local("Andika"), local("Andika New Basic");
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:AndikaLocal, Arial, sans-serif;
+  background:#e9f5fb;
+  color:#18364c;
+}
+button{font:inherit;cursor:pointer}
+[hidden]{display:none!important}
+.app{min-height:100dvh;display:flex;flex-direction:column}
+.topbar{
+  background:#fff;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 12px;border-bottom:2px solid #c7ddea;box-shadow:0 2px 10px rgba(0,0,0,.06)
+}
+.topbar strong{font-size:clamp(18px,2.4vw,28px)}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.smallbtn,.bigbtn{
+  border:2px solid #b6d0e1;background:#fff;color:#18364c;border-radius:12px;
+  padding:8px 12px;font-weight:700;
+}
+.bigbtn{background:#1f84c8;border-color:#1f84c8;color:#fff;min-height:48px}
+.screen{flex:1;display:flex;flex-direction:column;gap:10px;padding:10px;min-height:0}
+.intro{
+  max-width:540px;width:100%;margin:auto;background:#fff;border-radius:24px;
+  padding:24px 28px;box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center
+}
+.intro h1{margin:0 0 20px;font-size:clamp(28px,4vw,42px)}
+.settings{display:grid;gap:15px;text-align:left}
+.setting{display:grid;gap:6px;font-weight:800;font-size:18px}
+.setting select{
+  width:100%;min-height:58px;padding:12px 45px 12px 15px;
+  appearance:none;-webkit-appearance:none;border:2px solid #b6d0e1;
+  border-radius:15px;color:#18364c;background-color:#f7fcff;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2318364c' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;
+  font:inherit;font-weight:700;cursor:pointer;
+}
+.setting.disabled{opacity:.55}
+.startbtn{width:100%;margin-top:21px;font-size:24px;min-height:62px}
+.taskbar{
+  background:#fff;border:2px solid #c8ddeb;border-radius:18px;padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap
+}
+.taskbar .left strong{display:block;font-size:clamp(18px,2.2vw,28px)}
+.taskbar .left span{font-size:clamp(14px,1.8vw,18px)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.workspace{
+  flex:1;min-height:0;
+  display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px;
+}
+/* In der Quiz-Spielart bleiben Bild und Antworten nebeneinander. */
+.workspace.quiz-layout{grid-template-columns:minmax(0,1fr) minmax(150px,300px)}
+.workspace.quiz-layout .playpanel{min-width:0}
+.workspace.quiz-layout .sidepanel{min-width:0}
+
+.playpanel,.sidepanel,.tray{
+  background:#fff;border:2px solid #c8ddeb;border-radius:20px;padding:10px;
+  box-shadow:0 4px 14px rgba(0,0,0,.04)
+}
+.playpanel{display:flex;flex-direction:column;min-height:0}
+.playArea{display:grid;grid-template-rows:minmax(0,1fr) auto;gap:10px;flex:1;min-height:0}
+.sceneWrap{position:relative;min-height:0}
+.sceneBox{
+  position:relative;overflow:hidden;border-radius:18px;
+  background:linear-gradient(#cfefff 0 45%,#9ad17c 45% 100%);
+  user-select:none;touch-action:none;
+}
+.mainScene{width:100%;height:100%;min-height:390px;border:2px solid #bad5e4}
+.previewOverlay{
+  position:absolute;top:10px;left:10px;z-index:90;
+  width:clamp(130px,16vw,170px);pointer-events:none;
+  filter:drop-shadow(0 5px 10px rgba(22,45,78,.26))
+}
+.previewCaption{
+  color:#174568;font-weight:800;font-size:11px;padding:3px 6px;
+  background:rgba(255,255,255,.96);border:2px solid #aacce0;border-bottom:0;
+  border-radius:10px 10px 0 0;width:max-content
+}
+.previewBox{
+  width:100%;aspect-ratio:16/11;border:3px solid #fff;border-radius:0 12px 12px 12px;
+  box-shadow:0 0 0 2px #8db9d4
+}
+/* Token sizes in the preview are set proportionally by JavaScript. */
+.tray h2,.sidepanel h2{margin:0 0 8px;font-size:clamp(18px,2vw,24px)}
+.trayGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px}
+.trayToken{
+  position:relative;width:100%;min-height:82px;border-radius:18px;
+  border:3px dashed #c7ddea;background:#f8fcff;
+}
+.token{
+  position:absolute;width:52px;height:52px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;box-shadow:none;text-align:center;line-height:1;touch-action:none
+}
+.token .icon{font-size:30px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.18))}
+.status{
+  min-height:28px;font-size:clamp(15px,1.8vw,19px);
+  font-weight:700;color:#24506e
+}
+.sidepanel{display:grid;grid-template-rows:auto auto 1fr auto;gap:10px}
+.choiceGrid{display:grid;gap:8px}
+.choiceBtn{
+  border:2px solid #b8d5e7;background:#f8fcff;color:#18364c;border-radius:14px;
+  min-height:64px;padding:8px 10px;text-align:left;font-weight:800;font-size:18px;
+  display:grid;grid-template-columns:76px 1fr;align-items:center;gap:10px;
+}
+.choiceBtn.correct{background:#e7f8ea;border-color:#67ae73}
+.choiceBtn.wrong{background:#fff1f1;border-color:#d67373}
+.arrowIcon{
+  position:relative;width:66px;height:42px;margin:0 auto;
+}
+
+.arrowIcon .arr{
+  position:absolute;font-size:35px;font-weight:900;color:#225d84;line-height:1;
+}
+.arrowIcon.auf .arr{left:20px;top:0}
+.arrowIcon.unter .arr{left:20px;top:0}
+.arrowIcon.links .arr{left:20px;top:0}
+.arrowIcon.rechts .arr{left:20px;top:0}
+.arrowIcon.vor .arr{left:20px;top:0}
+.arrowIcon.hinter .arr{left:20px;top:0}
+.posIcon{
+  position:relative;width:66px;height:42px;margin:0 auto;
+}
+.posIcon .big{
+  position:absolute;left:12px;top:9px;width:42px;height:24px;border-radius:6px;
+  background:#dbe8f0;border:2px solid #b7cad8;z-index:2;
+}
+.posIcon .small{
+  position:absolute;width:18px;height:14px;border-radius:4px;
+  background:#4d6a7d;border:2px solid #35515f;z-index:3;
+}
+.posIcon.auf .small{left:24px;top:0}
+.posIcon.unter .small{left:24px;top:28px}
+.posIcon.links .small{left:0;top:14px}
+.posIcon.rechts .small{left:48px;top:14px}
+.posIcon.vor .small{left:24px;top:24px;z-index:4}
+.posIcon.hinter .small{left:24px;top:2px;z-index:1;opacity:.95}
+.choiceLabel{display:block}
+.nextImage{
+  margin-top:4px;width:100%;min-height:56px;border-radius:16px;
+  border:2px solid #b6d0e1;background:#fff;font-weight:800;font-size:20px
+}
+.noteBox{
+  border:2px solid #d7e7f0;background:#f8fcff;border-radius:14px;padding:10px;
+  font-size:15px;line-height:1.35
+}
+.modal{
+  position:fixed;inset:0;display:grid;place-items:center;background:rgba(11,31,45,.45);
+  padding:12px;z-index:100
+}
+.modalPanel{
+  background:#fff;width:min(94vw,430px);border-radius:24px;padding:22px;text-align:center;
+  box-shadow:0 16px 40px rgba(0,0,0,.18)
+}
+.modalPanel h2{margin:0 0 8px;font-size:34px}
+.modalPanel p{font-size:18px;line-height:1.4}
+.modalPanel img{
+  width:210px;height:210px;background:#fff;padding:8px;border-radius:14px;
+  border:2px solid #d6e5ef
+}
+.modalBtns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+@media(max-width:760px){
+  .workspace:not(.quiz-layout){grid-template-columns:1fr}
+  .workspace.quiz-layout{grid-template-columns:minmax(0,1fr) minmax(132px,39%);gap:5px}
+  .workspace.quiz-layout .playpanel,.workspace.quiz-layout .sidepanel{padding:5px;border-radius:12px}
+  .workspace.quiz-layout .mainScene{min-height:330px}
+  .workspace.quiz-layout .sidepanel{display:flex;flex-direction:column;gap:5px}
+  .workspace.quiz-layout .sidepanel h2{font-size:14px;line-height:1.2;margin:2px 0}
+  .workspace.quiz-layout .noteBox{font-size:11px;padding:4px;border-width:1px}
+  .workspace.quiz-layout .choiceGrid{gap:4px}
+  .workspace.quiz-layout .choiceBtn{grid-template-columns:38px minmax(0,1fr);gap:3px;min-height:44px;padding:2px 3px;font-size:clamp(11px,3.4vw,15px);border-radius:9px}
+  .workspace.quiz-layout .posIcon{width:36px;height:29px;transform:scale(.57);transform-origin:top left}
+  .workspace.quiz-layout .arrowIcon{width:34px;height:30px;margin:0;transform:none}
+  .workspace.quiz-layout .arrowIcon .arr{left:3px;top:0;font-size:29px}
+  .workspace.quiz-layout .nextImage{min-height:42px;padding:4px;font-size:13px;margin-top:auto}
+  .previewOverlay{width:128px}
+  .mainScene{min-height:320px}
+}
+@media(max-width:390px){
+  .workspace.quiz-layout{grid-template-columns:minmax(0,1fr) 139px}
+  .workspace.quiz-layout .choiceBtn{font-size:12px}
+  .workspace.quiz-layout .sidepanel h2{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <strong>📍 Raum & Lage – Orientierung</strong>
+    <div class="tools">
+      <button class="smallbtn" id="menuBtn">Menü</button>
+      <button class="smallbtn" id="qrBtn">QR-Code</button>
+      <button class="smallbtn" id="fullBtn">Vollbild</button>
+      <button class="smallbtn" id="backBtn">Zur Lernwerkstatt</button>
+    </div>
+  </header>
+
+  <section class="screen" id="menuScreen">
+    <div class="intro">
+      <h1>Wo steht was?</h1>
+      <div class="settings">
+        <label class="setting" id="settingMode" for="modeSelect">Spielart
+          <select id="modeSelect">
+            <option value="template">Mit Vorlage</option>
+            <option value="free">Ohne Vorlage</option>
+            <option value="quiz">Präposition wählen · Quader</option>
+            <option value="quiz-arrows">Präposition wählen · Pfeile</option>
+          </select>
+        </label>
+        <label class="setting" id="settingAnchor" for="anchorSelect">Orientierung
+          <select id="anchorSelect">
+            <option value="table">Tisch</option>
+            <option value="table-house">Tisch + Haus</option>
+            <option value="table-house-tree">Tisch + Haus + Baum</option>
+          </select>
+        </label>
+        <label class="setting" id="settingLevel" for="levelSelect">Schwierigkeit
+          <select id="levelSelect">
+            <option value="easy">Leicht · 3 Gegenstände</option>
+            <option value="medium">Mittel · 4 Gegenstände</option>
+            <option value="hard">Schwer · 5 Gegenstände</option>
+          </select>
+        </label>
+      </div>
+      <button class="bigbtn startbtn" id="startBtn">▶ Starten</button>
+    </div>
+  </section>
+
+  <section class="screen" id="gameScreen" hidden>
+    <div class="taskbar">
+      <div class="left">
+        <strong id="taskTitle">Baue die Vorlage nach.</strong>
+        <span id="taskSubtitle">Ordne die Gegenstände wie in der Vorlage.</span>
+      </div>
+      <div class="controls">
+        <button class="smallbtn" id="checkBtn" hidden>Prüfen</button>
+        <button class="smallbtn" id="resetBtn">Zurücksetzen</button>
+        <button class="bigbtn" id="newBtn" hidden>Neues Spiel</button>
+      </div>
+    </div>
+
+    <div class="workspace">
+      <div class="playpanel">
+        <div class="playArea">
+          <div class="sceneWrap">
+            <div class="sceneBox mainScene" id="playScene"></div>
+            <div class="previewOverlay" id="previewOverlay" aria-label="Vorlage">
+              <div class="previewCaption">Vorlage</div>
+              <div class="sceneBox previewBox" id="previewScene"></div>
+            </div>
+          </div>
+          <div class="tray" id="trayPanel"><h2>Gegenstände</h2><div class="trayGrid" id="trayGrid"></div></div>
+        </div>
+      </div>
+
+      <aside class="sidepanel" id="quizPanel" hidden>
+        <h2>Welche Präposition passt?</h2>
+        <div class="noteBox" id="quizPrompt">Wo ist der Gegenstand? Wähle rechts die passende Präposition.</div>
+        <div class="choiceGrid" id="choiceGrid"></div>
+        <button class="nextImage" id="nextImageBtn">Nächstes Bild</button>
+      </aside>
+    </div>
+
+    <div class="status" id="status"></div>
+  </section>
+</div>
+
+<div class="modal" id="winModal" hidden>
+  <div class="modalPanel">
+    <h2>⭐ Super!</h2>
+    <p>Du hast die Vorlage richtig nachgebaut.</p>
+    <div class="modalBtns">
+      <button class="bigbtn" id="nextBtn">Noch eine Aufgabe</button>
+      <button class="smallbtn" id="menuBtn2">Zum Menü</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="qrModal" hidden>
+  <div class="modalPanel">
+    <h2>QR-Code</h2>
+    <p>Nach der Veröffentlichung führt der Code direkt zu diesem Spiel.</p>
+    <img id="qrImg" alt="QR-Code zum Spiel">
+    <div class="modalBtns">
+      <button class="smallbtn" id="closeQrBtn">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+
+const items = [
+  {id:'buch', name:'Buch', icon:'📕'},
+  {id:'tasse', name:'Tasse', icon:'☕'},
+  {id:'flasche', name:'Flasche', icon:'🧴'},
+  {id:'fahrrad', name:'Fahrrad', icon:'🚲'},
+  {id:'roller', name:'Roller', icon:'🛴'},
+  {id:'stuhl', name:'Stuhl', icon:'🪑'},
+  {id:'blume', name:'Blume', icon:'🌼'},
+  {id:'ball', name:'Ball', icon:'⚽'},
+  {id:'hund', name:'Hund', icon:'🐶'},
+  {id:'katze', name:'Katze', icon:'🐱'}
+];
+
+const slotDefs = {
+  tisch_auf:   {anchor:'table', x:.50, y:.49, z:60},
+  tisch_unter: {anchor:'table', x:.50, y:.76, z:26},
+  tisch_links: {anchor:'table', x:.30, y:.70, z:48},
+  tisch_rechts:{anchor:'table', x:.70, y:.70, z:48},
+  tisch_vor:   {anchor:'table', x:.50, y:.88, z:65},
+  tisch_hinter:{anchor:'table', x:.50, y:.60, z:14},
+
+  haus_auf:    {anchor:'house', x:.18, y:.46, z:56},
+  haus_links:  {anchor:'house', x:.05, y:.73, z:48},
+  haus_rechts: {anchor:'house', x:.31, y:.73, z:48},
+  haus_vor:    {anchor:'house', x:.18, y:.92, z:64},
+  haus_hinter: {anchor:'house', x:.12, y:.58, z:12},
+
+  baum_auf:    {anchor:'tree', x:.82, y:.44, z:56},
+  baum_links:  {anchor:'tree', x:.70, y:.75, z:48},
+  baum_rechts: {anchor:'tree', x:.94, y:.75, z:48},
+  baum_vor:    {anchor:'tree', x:.82, y:.93, z:64},
+  baum_hinter: {anchor:'tree', x:.88, y:.57, z:12}
+};
+
+const levelCounts = {easy:3, medium:4, hard:5};
+const prepLabels = {
+  tisch_auf:'⬆ auf', tisch_unter:'⬇ unter', tisch_links:'⬅ links', tisch_rechts:'➡ rechts', tisch_vor:'↘ vor', tisch_hinter:'↖ hinter',
+  haus_auf:'⬆ auf', haus_links:'⬅ links', haus_rechts:'➡ rechts', haus_vor:'↘ vor', haus_hinter:'↖ hinter',
+  baum_auf:'⬆ auf', baum_links:'⬅ links', baum_rechts:'➡ rechts', baum_vor:'↘ vor', baum_hinter:'↖ hinter'
+};
+
+let state = {
+  level:'easy',
+  mode:'template',
+  anchorMode:'table',
+  targetAssignments:{},
+  placed:{},
+  activeTokenId:null,
+  quizItemId:null,
+  quizSlotId:null,
+  quizAnswered:false
+};
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function createBaseSceneHTML(scale='main'){
+  const preview = scale === 'preview';
+  const showHouse = ['table-house','table-house-tree'].includes(state.anchorMode) && state.mode !== 'quiz' && state.mode !== 'quiz-arrows';
+  const showTree = state.anchorMode === 'table-house-tree' && state.mode !== 'quiz' && state.mode !== 'quiz-arrows';
+  // In the free mode, provide independent, clearly separated space around
+  // each landmark. Other modes retain their approved geometry unchanged.
+  const free = state.mode === 'free';
+  const tableStyle = free
+    ? 'left:35%;top:44%;width:30%;height:41%'
+    : 'left:28%;top:43%;width:44%;height:42%';
+  const houseStyle = free
+    ? 'left:6%;top:43%;width:18%;height:39%'
+    : 'left:9%;top:39%;width:18%;height:42%';
+  const treeStyle = free
+    ? 'left:77%;top:37%;width:17%;height:45%'
+    : 'left:73%;top:34%;width:17%;height:48%';
+  return `
+    ${showHouse ? `<div class="houseLandmark" style="position:absolute;${houseStyle};z-index:35;pointer-events:none">${houseSVG(preview)}</div>` : ``}
+    ${showTree ? `<div class="treeLandmark" style="position:absolute;${treeStyle};z-index:35;pointer-events:none">${treeSVG(preview)}</div>` : ``}
+    <div class="tableLandmark" style="position:absolute;${tableStyle};z-index:35;pointer-events:none">${tableSVG(preview)}</div>
+  `;
+}
+
+function houseSVG(preview){
+  return `
+  <svg viewBox="0 0 140 150" width="100%" height="100%" aria-hidden="true">
+    <path d="M18 60L70 20L122 60" fill="#d86f66" stroke="#a5524b" stroke-width="6" stroke-linejoin="round"/>
+    <rect x="24" y="58" width="92" height="72" rx="6" fill="#ffd65f" stroke="#cfac3f" stroke-width="5"/>
+    <rect x="55" y="98" width="30" height="40" rx="3" fill="#ffffff" stroke="#9cb9d1" stroke-width="4"/>
+    <circle cx="79" cy="118" r="2.5" fill="#c88b58"/>
+    <rect x="36" y="72" width="20" height="18" fill="#dff4ff" stroke="#9bc7db" stroke-width="4"/>
+    <rect x="84" y="72" width="20" height="18" fill="#dff4ff" stroke="#9bc7db" stroke-width="4"/>
+  </svg>`;
+}
+
+function treeSVG(preview){
+  return `
+  <svg viewBox="0 0 160 180" width="100%" height="100%" aria-hidden="true">
+    <rect x="70" y="98" width="22" height="58" rx="6" fill="#8b5b36"/>
+    <circle cx="80" cy="60" r="44" fill="#5cc2ba"/>
+    <circle cx="48" cy="76" r="34" fill="#63cbc3"/>
+    <circle cx="112" cy="78" r="33" fill="#5bc0b8"/>
+    <circle cx="81" cy="97" r="30" fill="#67d0c8"/>
+    ${[ [50,53],[79,49],[103,57],[63,78],[92,84],[117,94],[46,98],[79,104] ].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="#ea3e45"/>`).join('')}
+  </svg>`;
+}
+
+function tableSVG(preview){
+  return `
+  <svg viewBox="0 0 420 260" width="100%" height="100%" aria-hidden="true">
+    <rect class="tableSurface" x="56" y="78" width="308" height="52" rx="10" fill="#b6824d" stroke="#8b6135" stroke-width="6"/>
+    <rect x="56" y="122" width="308" height="18" fill="#996739"/>
+    <rect class="tableLegFront" x="76" y="140" width="22" height="94" rx="5" fill="#8b6135"/>
+    <rect x="322" y="140" width="22" height="94" rx="5" fill="#8b6135"/>
+    <rect x="122" y="140" width="18" height="88" rx="5" fill="#8b6135"/>
+    <rect x="280" y="140" width="18" height="88" rx="5" fill="#8b6135"/>
+  </svg>`;
+}
+
+function renderSceneBase(container, mode){
+  container.innerHTML = createBaseSceneHTML(mode === 'preview' ? 'preview' : 'main');
+}
+
+function makeTokenEl(item){
+  const el = document.createElement('div');
+  el.className = 'token';
+  el.dataset.itemId = item.id;
+  el.innerHTML = `<div class="icon" aria-hidden="true">${item.icon}</div>`;
+  el.setAttribute('aria-label', item.name);
+  el.title = item.name;
+  return el;
+}
+
+function pxToScene(scene, rx, ry){
+  return {x: scene.clientWidth*rx, y: scene.clientHeight*ry};
+}
+
+
+function getLandmarkRect(scene, slotId){
+  if(slotId.startsWith('tisch_')) return scene.querySelector('.tableLandmark')?.getBoundingClientRect();
+  if(slotId.startsWith('haus_')) return scene.querySelector('.houseLandmark')?.getBoundingClientRect();
+  if(slotId.startsWith('baum_')) return scene.querySelector('.treeLandmark')?.getBoundingClientRect();
+  return null;
+}
+
+function getSlotGeometry(scene, slotId){
+  const sceneRect = scene.getBoundingClientRect();
+  const rect = getLandmarkRect(scene, slotId);
+  if(!rect){
+    const def = slotDefs[slotId];
+    const pt = pxToScene(scene, def.x, def.y);
+    return {cx:pt.x, cy:pt.y, z:def.z, size:52, top:pt.y-26, left:pt.x-26};
+  }
+
+  const rx = rect.left - sceneRect.left;
+  const ry = rect.top - sceneRect.top;
+  const rw = rect.width;
+  const rh = rect.height;
+  const def = slotDefs[slotId];
+  let cx = rx + rw/2, cy = ry + rh/2, z = def.z, size = 52;
+
+  if(slotId.startsWith('tisch_')){
+    if(slotId === 'tisch_auf'){ cx = rx + rw*0.50; cy = ry + rh*0.29; z = 62; }
+    if(slotId === 'tisch_unter'){ cx = rx + rw*0.50; cy = ry + rh*0.73; z = 20; size = 36; }
+    if(slotId === 'tisch_links'){ cx = rx + rw*0.18; cy = ry + rh*0.63; z = 48; }
+    if(slotId === 'tisch_rechts'){ cx = rx + rw*0.82; cy = ry + rh*0.63; z = 48; }
+    if(slotId === 'tisch_vor'){ cx = rx + rw*0.50; cy = ry + rh*0.86; z = 66; }
+    if(slotId === 'tisch_hinter'){ cx = rx + rw*0.50; cy = ry + rh*0.46; z = 12; size = 46; }
+  }
+
+  if(slotId.startsWith('haus_')){
+    if(slotId === 'haus_auf'){ cx = rx + rw*0.50; cy = ry + rh*0.20; z = 60; size = 38; }
+    if(slotId === 'haus_links'){ cx = rx + rw*0.02; cy = ry + rh*0.68; z = 48; }
+    if(slotId === 'haus_rechts'){ cx = rx + rw*0.98; cy = ry + rh*0.68; z = 48; }
+    if(slotId === 'haus_vor'){ cx = rx + rw*0.50; cy = ry + rh*0.88; z = 64; }
+    if(slotId === 'haus_hinter'){ cx = scene.clientWidth*.12; cy = scene.clientHeight*.58; z = 12; size = 42; }
+  }
+
+  if(slotId.startsWith('baum_')){
+    if(slotId === 'baum_auf'){ cx = rx + rw*0.50; cy = ry + rh*0.18; z = 60; size = 36; }
+    if(slotId === 'baum_links'){ cx = rx + rw*0.10; cy = ry + rh*0.70; z = 48; }
+    if(slotId === 'baum_rechts'){ cx = rx + rw*0.90; cy = ry + rh*0.70; z = 48; }
+    if(slotId === 'baum_vor'){ cx = rx + rw*0.50; cy = ry + rh*0.90; z = 64; }
+    if(slotId === 'baum_hinter'){ cx = scene.clientWidth*.88; cy = scene.clientHeight*.57; z = 12; size = 40; }
+  }
+
+  // In the free-placement game, "auf dem Tisch" is anchored to the
+  // actually rendered tabletop, not to a percentage of the landmark box.
+  // The SVG can have empty margins depending on the display aspect ratio.
+  if(state.mode === 'free' && slotId === 'tisch_auf'){
+    const tabletop = scene.querySelector('.tableSurface');
+    if(tabletop){
+      const edge = tabletop.getBoundingClientRect();
+      cx = edge.left - sceneRect.left + edge.width / 2;
+      size = Math.min(52, Math.max(32, edge.width * .25));
+      cy = edge.top - sceneRect.top - size / 2 + 3;
+      z = 62;
+    }
+  }
+
+  // ONLY the free-placement variant: match the actual table surface and
+  // leg opening. This is independent of percentage-based landmark geometry.
+  if(state.mode === 'free' && (slotId === 'tisch_unter' || slotId === 'tisch_hinter')){
+    const tabletop = scene.querySelector('.tableSurface');
+    const frontLeg = scene.querySelector('.tableLegFront');
+    if(tabletop && frontLeg){
+      const topRect = tabletop.getBoundingClientRect();
+      const legRect = frontLeg.getBoundingClientRect();
+      cx = topRect.left - sceneRect.left + topRect.width / 2;
+      if(slotId === 'tisch_unter'){
+        // Feet on the ground, under the apron, visibly between the legs.
+        const openingTop = topRect.bottom + 6;
+        const openingBottom = legRect.bottom - 4;
+        const room = Math.max(20, openingBottom - openingTop);
+        size = Math.min(46, Math.max(20, room * .68), topRect.width*.23);
+        cy = (openingTop + openingBottom)/2 - sceneRect.top;
+        z = 21;
+      }else{
+        // Upper part is visible ABOVE the tabletop; lower part is hidden
+        // behind the opaque table surface (not perched on top).
+        size = Math.min(49, Math.max(27, topRect.width*.18));
+        cy = topRect.top - sceneRect.top - size * .03;
+        z = 11;
+      }
+    }
+  }
+
+  // Only in "Ohne Vorlage": all lateral positions are placed outside
+  // their landmark silhouettes with independent spaces on both sides.
+  // This adapts to the scene width on a tablet or Smartboard.
+  if(state.mode === 'free' && (slotId.endsWith('_links') || slotId.endsWith('_rechts'))){
+    const hasHouse = state.anchorMode !== 'table';
+    const hasTree = state.anchorMode === 'table-house-tree';
+    const side = slotId.endsWith('_links') ? 'links' : 'rechts';
+    const xByAnchor = {
+      table: {links: hasHouse ? .335 : .23, rechts:hasTree ? .665 : .77},
+      house: {links:.035, rechts:.27},
+      tree:  {links:.73, rechts:.965}
+    };
+    const anchor = def.anchor;
+    cx = scene.clientWidth * xByAnchor[anchor][side];
+    cy = scene.clientHeight * .75;
+    // Keep the draggable object visible without overlapping another slot
+    // on smaller tablet screens.
+    size = Math.min(52, Math.max(26, scene.clientWidth * .063));
+    z = 48;
+  }
+
+  // Nur in den beiden Präpositionen-Spielen: links/rechts klar außerhalb
+  // der Tischfläche platzieren, auch auf schmalen Smartphone-Displays.
+  if((state.mode === 'quiz' || state.mode === 'quiz-arrows') &&
+      (slotId === 'tisch_links' || slotId === 'tisch_rechts')){
+    cx = scene.clientWidth * (slotId === 'tisch_links' ? .12 : .88);
+    cy = scene.clientHeight * .70;
+    size = Math.min(52, scene.clientWidth * .19);
+  }
+  return {cx, cy, z, size, top: cy - size/2, left: cx - size/2};
+}
+
+function applyTokenSize(el, size){
+  el.style.width = `${size}px`;
+  el.style.height = `${size}px`;
+  const emoji = el.querySelector('.icon');
+  if(emoji) emoji.style.fontSize = `${Math.max(8, size * .80)}px`;
+}
+
+function positionTokenInSlot(el, scene, slotId){
+  const g = getSlotGeometry(scene, slotId);
+  const preview = scene.classList.contains('previewBox');
+  // The preview is a miniature of the game scene. Keep items proportional
+  // instead of using the full-size 36–52 px item sizes inside a 170 px scene.
+  const ratio = preview
+    ? Math.min(scene.clientWidth / 800, scene.clientHeight / 500)
+    : 1;
+  const size = preview ? Math.max(7, g.size * ratio) : g.size;
+  applyTokenSize(el, size);
+  let left = g.cx - size / 2;
+  let top = g.cy - size / 2;
+
+  if(slotId === 'tisch_auf' && state.mode !== 'free'){
+    top = g.cy - size + (preview ? 0 : 2);
+  }
+  if(slotId === 'haus_auf' || slotId === 'baum_auf'){
+    top = g.cy - size + (preview ? 1 : 4);
+  }
+  if(slotId === 'tisch_hinter' && state.mode !== 'free'){
+    const tabletop = scene.querySelector('.tableSurface');
+    if(tabletop){
+      const sceneTop = scene.getBoundingClientRect().top;
+      top = tabletop.getBoundingClientRect().top - sceneTop - size * .58;
+    }
+  }
+
+  el.style.left = `${left}px`;
+  el.style.top = `${top}px`;
+  el.style.zIndex = g.z;
+  el.dataset.slot = slotId;
+}
+
+function allowedSlotIds(){
+  if(state.mode === 'quiz' || state.mode === 'quiz-arrows') return ['tisch_auf','tisch_unter','tisch_links','tisch_rechts','tisch_vor','tisch_hinter'];
+  let slots = ['tisch_auf','tisch_unter','tisch_links','tisch_rechts','tisch_vor','tisch_hinter'];
+  if(['table-house','table-house-tree'].includes(state.anchorMode)){
+    slots = slots.concat(['haus_auf','haus_links','haus_rechts','haus_vor','haus_hinter']);
+  }
+  if(state.anchorMode === 'table-house-tree'){
+    slots = slots.concat(['baum_auf','baum_links','baum_rechts','baum_vor','baum_hinter']);
+  }
+  return slots;
+}
+
+function nearestSlot(scene, centerX, centerY){
+  if(state.mode === 'free'){
+    const tabletop = scene.querySelector('.tableSurface');
+    const frontLeg = scene.querySelector('.tableLegFront');
+    if(tabletop && frontLeg){
+      const sr = scene.getBoundingClientRect();
+      const tr = tabletop.getBoundingClientRect();
+      const lr = frontLeg.getBoundingClientRect();
+      const l = tr.left-sr.left, r = tr.right-sr.left;
+      const t = tr.top-sr.top, b = tr.bottom-sr.top;
+      const feet = lr.bottom-sr.top;
+      const cx=(l+r)/2;
+      const tol=Math.min(16, scene.clientWidth*.025);
+
+      // "hinter": release an object just BEHIND the rear edge of the table.
+      // It appears partly occluded by the solid tabletop.
+      if(centerX>=l+tol && centerX<=r-tol &&
+         centerY>=t-85 && centerY<t-17){
+        return 'tisch_hinter';
+      }
+      // "auf": the visible tabletop is its own direct drop region.
+      if(centerX>=l-tol && centerX<=r+tol &&
+         centerY>=t-17 && centerY<=b+4){
+        return 'tisch_auf';
+      }
+      // "unter": entire open region below the apron, between the legs.
+      // Prioritise this before the generic nearest-slot search.
+      if(centerX>=l+tr.width*.22 && centerX<=r-tr.width*.22 &&
+         centerY>b+4 && centerY<=feet+9){
+        return 'tisch_unter';
+      }
+      // Allow a little extra tolerance around the under-region centre.
+      const under=getSlotGeometry(scene,'tisch_unter');
+      if(Math.abs(centerX-cx)<tr.width*.22 &&
+         Math.abs(centerY-under.cy)<Math.max(20,(feet-b)*.45)){
+        return 'tisch_unter';
+      }
+    }
+  }
+  let best = null, bestDist = Infinity;
+  for(const slotId of allowedSlotIds()){
+    const g = getSlotGeometry(scene, slotId);
+    const d = Math.hypot(centerX-g.cx, centerY-g.cy);
+    if(d < bestDist){bestDist=d;best=slotId;}
+  }
+  const limit = Math.min(scene.clientWidth, scene.clientHeight) * 0.22;
+  return bestDist < limit ? best : null;
+}
+
+function buildTask(){
+  if(state.mode === 'quiz' || state.mode === 'quiz-arrows'){
+    state.quizItemId = shuffle(items)[0].id;
+    state.quizSlotId = shuffle(allowedSlotIds())[0];
+    state.quizAnswered = false;
+    state.targetAssignments = {};
+    state.placed = {};
+    state.activeTokenId = null;
+    return;
+  }
+  const count = levelCounts[state.level];
+  const candidateSlots = shuffle(allowedSlotIds()).slice(0, count);
+  const chosenItems = shuffle(items).slice(0, count);
+  state.targetAssignments = {};
+  chosenItems.forEach((item, idx) => state.targetAssignments[item.id] = candidateSlots[idx]);
+  state.placed = {};
+  state.activeTokenId = null;
+}
+
+function renderPreview(){
+  const scene = $('previewScene');
+  renderSceneBase(scene, 'preview');
+  for(const [itemId, slotId] of Object.entries(state.targetAssignments)){
+    const item = items.find(x => x.id === itemId);
+    const el = makeTokenEl(item);
+    scene.append(el);
+    positionTokenInSlot(el, scene, slotId);
+  }
+}
+
+function renderPlayScene(){
+  const scene = $('playScene');
+  renderSceneBase(scene, 'main');
+  if(state.mode === 'quiz' || state.mode === 'quiz-arrows'){
+    const item = items.find(x => x.id === state.quizItemId);
+    const el = makeTokenEl(item);
+    scene.append(el);
+    positionTokenInSlot(el, scene, state.quizSlotId);
+    return;
+  }
+  for(const itemId of Object.keys(state.targetAssignments)){
+    if(state.placed[itemId]){
+      const slotId = state.placed[itemId];
+      const item = items.find(x => x.id === itemId);
+      const el = makeTokenEl(item);
+      el.dataset.scene = 'play';
+      attachTokenEvents(el);
+      scene.append(el);
+      positionTokenInSlot(el, scene, slotId);
+    }
+  }
+}
+
+function renderTray(){
+  const tray = $('trayGrid');
+  tray.innerHTML = '';
+  if(state.mode === 'quiz' || state.mode === 'quiz-arrows'){ return; }
+  Object.keys(state.targetAssignments).forEach(itemId => {
+    if(state.placed[itemId]) return;
+    const holder = document.createElement('div');
+    holder.className = 'trayToken';
+    const item = items.find(x => x.id === itemId);
+    const el = makeTokenEl(item);
+    el.style.left = '50%';
+    el.style.top = '50%';
+    el.style.transform = 'translate(-50%,-50%)';
+    el.dataset.scene = 'tray';
+    attachTokenEvents(el);
+    holder.append(el);
+    tray.append(holder);
+  });
+}
+
+function renderQuizChoices(){
+  const grid = $('choiceGrid');
+  grid.innerHTML = '';
+  const quizChoices = [
+    ['tisch_unter','unter','unter'],
+    ['tisch_auf','auf','auf'],
+    ['tisch_links','links','links'],
+    ['tisch_rechts','rechts','rechts'],
+    ['tisch_hinter','hinter','hinter'],
+    ['tisch_vor','vor','vor']
+  ];
+  const useArrows = state.mode === 'quiz-arrows';
+  quizChoices.forEach(([slotId, label, cls]) => {
+    const btn = document.createElement('button');
+    btn.className = 'choiceBtn';
+    if(useArrows){
+      const arrowMap = {auf:'↑',unter:'↓',links:'←',rechts:'→',hinter:'↖',vor:'↘'};
+      btn.innerHTML = `<span class="arrowIcon ${cls}" aria-hidden="true"><span class="arr">${arrowMap[cls]}</span></span><span class="choiceLabel">${label}</span>`;
+    }else{
+      btn.innerHTML = `<span class="posIcon ${cls}" aria-hidden="true"><span class="big"></span><span class="small"></span></span><span class="choiceLabel">${label}</span>`;
+    }
+    btn.onclick = () => checkQuizAnswer(slotId, btn);
+    grid.append(btn);
+  });
+}
+
+function resetChoiceStyles(){
+  document.querySelectorAll('.choiceBtn').forEach(b => b.classList.remove('correct','wrong'));
+}
+
+function renderAll(){
+  document.querySelector('.workspace').classList.toggle('quiz-layout', state.mode === 'quiz' || state.mode === 'quiz-arrows');
+  $('previewOverlay').hidden = state.mode !== 'template';
+  $('trayPanel').hidden = (state.mode === 'quiz' || state.mode === 'quiz-arrows');
+  $('quizPanel').hidden = !(state.mode === 'quiz' || state.mode === 'quiz-arrows');
+  if(state.mode === 'template') renderPreview();
+  renderPlayScene();
+  renderTray();
+  if(state.mode === 'quiz' || state.mode === 'quiz-arrows'){
+    renderQuizChoices();
+    $('quizPrompt').textContent = state.mode === 'quiz-arrows' ? 'Wo ist der Gegenstand? Wähle rechts die passende Präposition mit Pfeil.' : 'Wo ist der Gegenstand? Wähle rechts die passende Präposition.';
+    $('status').textContent = '';
+  } else {
+    $('status').textContent = state.mode === 'free' ? 'Bereit für deinen mündlichen Auftrag.' : '';
+  }
+}
+
+function startGame(){
+  state.anchorMode = $('anchorSelect').value;
+  state.level = $('levelSelect').value;
+  state.mode = $('modeSelect').value;
+  buildTask();
+  $('menuScreen').hidden = true;
+  $('gameScreen').hidden = false;
+  $('winModal').hidden = true;
+  $('checkBtn').hidden = true;
+  $('resetBtn').hidden = state.mode !== 'free';
+  $('newBtn').hidden = (state.mode === 'quiz' || state.mode === 'quiz-arrows');
+  $('taskTitle').textContent =
+    state.mode === 'template' ? 'Baue die Vorlage nach.' :
+    state.mode === 'free' ? 'Wo steht was?' :
+    'Wähle die richtige Präposition.';
+  $('taskSubtitle').textContent =
+    state.mode === 'template' ? 'Ordne die Gegenstände wie in der Vorlage an und starte dann ein neues Spiel.' :
+    state.mode === 'free' ? 'Du kannst die Gegenstände frei nach deinem Auftrag platzieren.' :
+    (state.mode === 'quiz-arrows'
+      ? 'Tippe rechts die passende Präposition mit Pfeil an.'
+      : 'Tippe rechts die passende Präposition an.');
+  renderAll();
+}
+
+function resetCurrent(){
+  if(state.mode === 'quiz' || state.mode === 'quiz-arrows'){ buildTask(); renderAll(); return; }
+  state.placed = {};
+  renderAll();
+}
+
+function nextTask(){
+  buildTask();
+  $('winModal').hidden = true;
+  renderAll();
+}
+
+function checkTemplateSolution(){
+  for(const [itemId, slotId] of Object.entries(state.targetAssignments)){
+    if(state.placed[itemId] !== slotId){
+      $('status').textContent = 'Das stimmt noch nicht ganz. Schau noch einmal genau hin.';
+      return;
+    }
+  }
+  $('status').textContent = 'Richtig! Super gemacht.';
+  $('winModal').hidden = false;
+}
+
+function checkQuizAnswer(slotId, btn){
+  if(state.quizAnswered) return;
+  resetChoiceStyles();
+  if(slotId === state.quizSlotId){
+    btn.classList.add('correct');
+    $('status').textContent = 'Richtig!';
+    state.quizAnswered = true;
+  }else{
+    btn.classList.add('wrong');
+    $('status').textContent = 'Das ist noch nicht richtig.';
+  }
+}
+
+function sceneCoords(evt, scene){
+  const rect = scene.getBoundingClientRect();
+  return {x: evt.clientX - rect.left, y: evt.clientY - rect.top};
+}
+
+function placeItem(itemId, slotId){
+  for(const [otherId, otherSlot] of Object.entries(state.placed)){
+    if(otherId !== itemId && otherSlot === slotId){
+      delete state.placed[otherId];
+    }
+  }
+  state.placed[itemId] = slotId;
+  renderPlayScene();
+  renderTray();
+}
+
+function returnItemToTray(itemId){
+  delete state.placed[itemId];
+  renderPlayScene();
+  renderTray();
+}
+
+function attachTokenEvents(el){
+  el.addEventListener('pointerdown', (evt) => {
+    evt.preventDefault();
+    const itemId = el.dataset.itemId;
+    state.activeTokenId = itemId;
+    const floating = makeTokenEl(items.find(x => x.id === itemId));
+    floating.style.pointerEvents = 'none';
+    floating.style.position = 'fixed';
+    floating.style.left = '-999px';
+    floating.style.top = '-999px';
+    floating.style.zIndex = '9999';
+    document.body.appendChild(floating);
+
+    const moveAt = (clientX, clientY) => {
+      const w = floating.offsetWidth;
+      const h = floating.offsetHeight;
+      floating.style.left = `${clientX - w/2}px`;
+      floating.style.top = `${clientY - h/2}px`;
+    };
+    moveAt(evt.clientX, evt.clientY);
+
+    const onMove = (e) => moveAt(e.clientX, e.clientY);
+
+    const onUp = (e) => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      floating.remove();
+
+      const scene = $('playScene');
+      const rect = scene.getBoundingClientRect();
+      const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+      if(!inside){
+        returnItemToTray(itemId);
+        return;
+      }
+      const coords = sceneCoords(e, scene);
+      const slotId = nearestSlot(scene, coords.x, coords.y);
+      if(slotId) placeItem(itemId, slotId);
+      else returnItemToTray(itemId);
+    };
+
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  });
+
+  el.addEventListener('click', () => {
+    state.activeTokenId = el.dataset.itemId;
+    $('status').textContent = 'Gegenstand ausgewählt.';
+  });
+}
+
+$('playScene').addEventListener('click', (evt) => {
+  if(state.mode === 'quiz' || state.mode === 'quiz-arrows') return;
+  if(!state.activeTokenId) return;
+  const slotId = nearestSlot($('playScene'), ...Object.values(sceneCoords(evt, $('playScene'))));
+  if(slotId){
+    placeItem(state.activeTokenId, slotId);
+    $('status').textContent = 'Gegenstand gesetzt.';
+    state.activeTokenId = null;
+  }
+});
+
+function syncMenu(){
+  const quiz = $('modeSelect').value === 'quiz' || $('modeSelect').value === 'quiz-arrows';
+  $('settingAnchor').classList.toggle('disabled', quiz);
+  $('settingLevel').classList.toggle('disabled', quiz);
+  $('anchorSelect').disabled = quiz;
+  $('levelSelect').disabled = quiz;
+}
+$('modeSelect').addEventListener('change', syncMenu);
+
+$('startBtn').addEventListener('click', startGame);
+$('menuBtn').addEventListener('click', () => { $('menuScreen').hidden = false; $('gameScreen').hidden = true; $('winModal').hidden = true; });
+$('menuBtn2').addEventListener('click', () => { $('menuScreen').hidden = false; $('gameScreen').hidden = true; $('winModal').hidden = true; });
+$('checkBtn').addEventListener('click', checkTemplateSolution);
+$('newBtn').addEventListener('click', nextTask);
+$('resetBtn').addEventListener('click', resetCurrent);
+$('nextBtn').addEventListener('click', nextTask);
+$('nextImageBtn').addEventListener('click', () => { buildTask(); renderAll(); });
+
+$('fullBtn').addEventListener('click', async () => {
+  try{
+    if(document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  }catch(e){}
+});
+$('backBtn').addEventListener('click', () => {
+  if(history.length > 1) history.back();
+  else location.href = 'https://annaslernwerkstatt.github.io/';
+});
+$('qrBtn').addEventListener('click', () => {
+  const url = 'https://annaslernwerkstatt.github.io/mathe/raum-lage-orientierung.html';
+  $('qrImg').src = 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=12&data=' + encodeURIComponent(url);
+  $('qrModal').hidden = false;
+});
+$('closeQrBtn').addEventListener('click', () => $('qrModal').hidden = true);
+
+syncMenu();
+})();
+</script>
+</body>
+</html>
